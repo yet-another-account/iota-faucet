@@ -1,5 +1,6 @@
 import records
 import time
+import settings
 
 
 class FaucetDB():
@@ -42,3 +43,26 @@ class FaucetDB():
         self.db.query("INSERT INTO 'payouts' ('timestamp','address','amount') \
                       VALUES (:timestamp, :addr, :amt);",
                       timestamp=time.time(), addr=address, amt=amount)
+
+    def tx_to_pow(self):
+        res = self.db.query("SELECT * FROM 'txs_queue' \
+                            WHERE pow=FALSE AND (tasktime IS NULL \
+                                OR tasktime < :threshold) \
+                            ORDER BY timestamp ASC \
+                            LIMIT 1",
+                            threshold=time.time() - settings.POW_TIMEOUT)
+
+        if len(res) == 0:
+            # No transactions to work on!
+            # Return spam transaction instead
+            return get_spam()
+
+        # Mark transaction as being worked on
+        self.db.query("UPDATE 'txs_queue' SET 'tasktime'=:now WHERE id=:id",
+                      now=time.time(), id=res.id)
+        return res[0].trytes
+
+
+def get_spam():
+    # TODO: function stub
+    return None
