@@ -45,7 +45,7 @@ class FaucetDB():
                       timestamp=time.time(), addr=address, amt=amount)
 
     def tx_to_pow(self):
-        res = self.db.query("SELECT * FROM 'txs_queue' \
+        res = self.db.query("SELECT * FROM txs_queue \
                             WHERE pow=FALSE AND (tasktime IS NULL \
                                 OR tasktime < :threshold) \
                             ORDER BY timestamp ASC \
@@ -58,9 +58,22 @@ class FaucetDB():
             return get_spam()
 
         # Mark transaction as being worked on
-        self.db.query("UPDATE 'txs_queue' SET 'tasktime'=:now WHERE id=:id",
+        self.db.query("UPDATE txs_queue SET tasktime=:now WHERE id=:id",
                       now=time.time(), id=res.id)
         return res[0].trytes
+
+    def get_seed(self, minbal):
+        seed = self.db.query("SELECT seeds.seed AS seed, txs_queue.seed, \
+                             seeds.timestamp, seeds.stale \
+                             FROM seeds LEFT OUTER JOIN txs_queue \
+                             ON seeds.seed = txs_queue.seed \
+                             WHERE txs_queue.seed IS NULL \
+                                AND seeds.stale = FALSE \
+                                AND seeds.balance > :minbal \
+                             ORDER BY seeds.timestamp ASC \
+                             LIMIT 1", minbal=minbal)
+
+        return seed[0].seed if len(seed) > 0 else None
 
 
 def get_spam():
