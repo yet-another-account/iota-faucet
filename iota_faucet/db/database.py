@@ -1,7 +1,7 @@
 import records
 from .. import config
 import logging
-from iota import ProposedTransaction
+from iota import ProposedTransaction, Address
 
 
 class FaucetDB():
@@ -90,13 +90,14 @@ class FaucetDB():
     def payout(self, address, amount):
         inputs = []
 
-        inpq = self.db.query("SELECT * FROM addesses WHERE spent=FALSE AND \
+        inpq = self.db.query("SELECT * FROM addresses WHERE spent=FALSE AND \
                              balance > 0 ORDER BY idx ASC")
 
         needed = amount
         for inp in inpq:
             needed -= inp.balance
-            inputs.append(inp.address)
+            inputs.append(Address(inp.address, key_index=inp.idx,
+                                  security_level=2, balance=inp.balance))
 
             if needed <= 0:
                 break
@@ -104,11 +105,14 @@ class FaucetDB():
         # do we have change?
         if needed < 0:
             chaddr = self.get_change_address()
-        else:
+        elif needed == 0:
             chaddr = None
+        else:
+            # not enough balance!
+            return None
 
-        self.api.prepare_transfer([
-            ProposedTransaction(address, amount)
+        return self.api.prepare_transfer([
+            ProposedTransaction(Address(address), amount)
         ], inputs=inputs, change_address=chaddr)
 
     def _clear(self):
