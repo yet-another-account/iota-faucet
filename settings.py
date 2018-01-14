@@ -1,1 +1,0 @@
-POW_TIMEOUT = 60
