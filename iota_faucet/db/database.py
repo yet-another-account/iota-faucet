@@ -21,7 +21,7 @@ class FaucetDB():
     def setup(self):
         self.db.query("CREATE TABLE addresses ( \
                       idx INT PRIMARY KEY, \
-                      address CHAR(81), \
+                      address CHAR(81) UNIQUE KEY, \
                       spent BOOLEAN, \
                       received BOOLEAN, \
                       balance INT \
