@@ -21,7 +21,7 @@ class FaucetDB():
         self.db.query("CREATE TABLE addresses ( \
                       idx INT PRIMARY KEY, \
                       address CHAR(81), \
-                      used BOOLEAN, \
+                      spent BOOLEAN, \
                       received BOOLEAN, \
                       balance INT \
                       )")
@@ -48,14 +48,14 @@ class FaucetDB():
             idx = lastaddr[0].idx + 1
 
         for addr in addrs:
-            self.db.query("INSERT INTO addresses (idx, address, used, \
+            self.db.query("INSERT INTO addresses (idx, address, spent, \
                           received, balance) \
                           VALUES (:idx, :address, false, false, 0)",
                           idx=idx, address=addr)
             idx += 1
 
     def check_addrs(self):
-        addrs = self.db.query("SELECT * FROM addresses WHERE used=FALSE")
+        addrs = self.db.query("SELECT * FROM addresses WHERE spent=FALSE")
 
         addrs = [a.address for a in addrs]
 
