@@ -21,7 +21,7 @@ class FaucetDB():
         self.db.query("CREATE TABLE addresses ( \
                       idx INT PRIMARY KEY, \
                       address CHAR(81), \
-                      used BOOLEAN \
+                      used BOOLEAN, \
                       balance INT \
                       )")
 
@@ -56,5 +56,5 @@ class FaucetDB():
         return self.db.query("SELECT COUNT(*) as k FROM addresses")[0].k
 
     def _clean(self):
-        self.db.query("DROP TABLE transactions;")
-        self.db.query("DROP TABLE addresses;")
+        self.db.query("DROP TABLE IF EXISTS transactions")
+        self.db.query("DROP TABLE IF EXISTS addresses")
