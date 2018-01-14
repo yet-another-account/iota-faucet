@@ -102,8 +102,9 @@ class FaucetDB():
                 break
 
         # do we have change?
-        if needed < 0:
+        if needed < 0 and not amount == 0:
             chaddr = self.get_change_address()
+
         elif needed == 0:
             chaddr = None
         else:
