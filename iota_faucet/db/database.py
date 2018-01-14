@@ -50,3 +50,7 @@ class FaucetDB():
 
     def num_addrs(self):
         return self.db.query("SELECT COUNT(*) as k FROM addresses")[0].k
+
+    def _clean(self):
+        self.db.query("DROP TABLE transactions;")
+        self.db.query("DROP TABLE addresses;")

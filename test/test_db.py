@@ -11,6 +11,8 @@ class AddressGeneration(TestCase):
                       Iota('http://node.lukaseder.de:14265',
                            seed='A' * 81))
 
+        db._clean()
+
         db.gen_addrs()
         self.assertEqual(db.num_addrs(), config.ADDR_BATCH)
         db.gen_addrs()
