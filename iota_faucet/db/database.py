@@ -4,9 +4,13 @@ import logging
 
 
 class FaucetDB():
-    def __init__(self, connection, api):
+    def __init__(self, connection, api, clean=False):
         self.db = records.Database(connection)
         self.api = api
+
+        # warning: do NOT enable in prod!
+        if clean:
+            self._clean()
 
         # create tables if nonexistant
         if not self.db.query("SHOW TABLES LIKE 'addresses'").first():
