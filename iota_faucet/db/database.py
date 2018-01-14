@@ -1,6 +1,4 @@
 import records
-import time
-from sqlalchemy.exc import OperationalError
 from .. import config
 import logging
 
@@ -11,9 +9,7 @@ class FaucetDB():
         self.api = api
 
         # create tables if nonexistant
-        try:
-            self.db.query("SHOW TABLES LIKE 'addresses'")[0]
-        except IndexError or OperationalError:
+        if not self.db.query("SHOW TABLES LIKE 'addresses'").first():
             logging.info("New database detected. Building tables...")
             self.setup()
 
@@ -22,6 +18,7 @@ class FaucetDB():
                       idx INT PRIMARY KEY, \
                       address CHAR(81), \
                       used BOOLEAN \
+                      balance INT \
                       )")
 
         self.db.query("CREATE TABLE transactions ( \
