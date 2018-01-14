@@ -22,6 +22,7 @@ class FaucetDB():
                       idx INT PRIMARY KEY, \
                       address CHAR(81), \
                       used BOOLEAN, \
+                      received BOOLEAN, \
                       balance INT \
                       )")
 
@@ -47,10 +48,24 @@ class FaucetDB():
             idx = lastaddr[0].idx + 1
 
         for addr in addrs:
-            self.db.query("INSERT INTO addresses (idx, address, used) \
-                          VALUES (:idx, :address, false)",
+            self.db.query("INSERT INTO addresses (idx, address, used, \
+                          received, balance) \
+                          VALUES (:idx, :address, false, false, 0)",
                           idx=idx, address=addr)
             idx += 1
+
+    def check_addrs(self):
+        addrs = self.db.query("SELECT * FROM addresses WHERE used=FALSE")
+
+        addrs = [a.address for a in addrs]
+
+        bals = self.api.get_balances(addrs, threshold=1)['balances']
+
+        for addr, bal in zip(addrs, bals):
+            if not bal == 0:
+                self.db.query("UPDATE addresses SET balance=:bal, received=TRUE \
+                              WHERE address=:addr",
+                              addr=addr, bal=bal)
 
     def num_addrs(self):
         return self.db.query("SELECT COUNT(*) as k FROM addresses")[0].k

@@ -13,5 +13,8 @@ class AddressGeneration(TestCase):
 
         db.gen_addrs()
         self.assertEqual(db.num_addrs(), config.ADDR_BATCH)
+
+        print(db.check_addrs())
+
         db.gen_addrs()
         self.assertEqual(db.num_addrs(), 2 * config.ADDR_BATCH)
