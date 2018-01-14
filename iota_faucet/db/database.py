@@ -77,9 +77,8 @@ class FaucetDB():
                           AND received=FALSE AND balance=0 LIMIT 1")
 
         if c.first():
-            self.db.query("UPDATE addresses SET receive=TRUE \
-                          WHERE address=:addr",
-                          addr=c.first.address)
+            self._mark_received(c.first().address)
+
             return c.first().address
         else:
             # generate more addresses and then recurse, now that there are
@@ -114,6 +113,11 @@ class FaucetDB():
         return self.api.prepare_transfer([
             ProposedTransaction(Address(address), amount)
         ], inputs=inputs, change_address=chaddr)
+
+    def _mark_received(self, address):
+        self.db.query("UPDATE addresses SET received=TRUE \
+                      WHERE address=:addr",
+                      addr=address)
 
     def _clear(self):
         self.db.query("DROP TABLE IF EXISTS transactions")
