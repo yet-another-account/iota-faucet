@@ -1,6 +1,7 @@
 import records
 from .. import config
 import logging
+from iota import ProposedTransaction
 
 
 class FaucetDB():
@@ -10,7 +11,7 @@ class FaucetDB():
 
         # warning: do NOT enable in prod!
         if clean:
-            self._clean()
+            self._clear()
 
         # create tables if nonexistant
         if not self.db.query("SHOW TABLES LIKE 'addresses'").first():
@@ -28,11 +29,12 @@ class FaucetDB():
 
         self.db.query("CREATE TABLE transactions ( \
                       id INT PRIMARY KEY AUTO_INCREMENT, \
+                      timestamp BIGINT, \
                       tailtx CHAR(81), \
                       confirmed BOOLEAN \
                       )")
 
-    def gen_addrs(self):
+    def gen_addrs(self, num=config.ADDR_BATCH):
         lastaddr = self.db.query("SELECT * FROM addresses \
                                  ORDER BY idx DESC \
                                  LIMIT 1")
@@ -43,8 +45,8 @@ class FaucetDB():
                 count=config.ADDR_BATCH)['addresses']
             idx = 0
         else:
-            addrs = self.api.get_new_addresses(count=config.ADDR_BATCH,
-                                               index=lastaddr[0].idx + 1)['addresses']
+            addrs = self.api.get_new_addresses(count=num, index=lastaddr[0].idx
+                                               + 1)['addresses']
             idx = lastaddr[0].idx + 1
 
         for addr in addrs:
@@ -70,6 +72,45 @@ class FaucetDB():
     def num_addrs(self):
         return self.db.query("SELECT COUNT(*) as k FROM addresses")[0].k
 
-    def _clean(self):
+    def get_change_address(self):
+        c = self.db.query("SELECT * FROM addresses WHERE spent=FALSE \
+                          AND received=FALSE AND balance=0 LIMIT 1")
+
+        if c.first():
+            self.db.query("UPDATE addresses SET receive=TRUE \
+                          WHERE address=:addr",
+                          addr=c.first.address)
+            return c.first().address
+        else:
+            # generate more addresses and then recurse, now that there are
+            # fresh addresses to return.
+            self.gen_addrs()
+            return self.get_change_address()
+
+    def payout(self, address, amount):
+        inputs = []
+
+        inpq = self.db.query("SELECT * FROM addesses WHERE spent=FALSE AND \
+                             balance > 0 ORDER BY idx ASC")
+
+        needed = amount
+        for inp in inpq:
+            needed -= inp.balance
+            inputs.append(inp.address)
+
+            if needed <= 0:
+                break
+
+        # do we have change?
+        if needed < 0:
+            chaddr = self.get_change_address()
+        else:
+            chaddr = None
+
+        self.api.prepare_transfer([
+            ProposedTransaction(address, amount)
+        ], inputs=inputs, change_address=chaddr)
+
+    def _clear(self):
         self.db.query("DROP TABLE IF EXISTS transactions")
         self.db.query("DROP TABLE IF EXISTS addresses")
