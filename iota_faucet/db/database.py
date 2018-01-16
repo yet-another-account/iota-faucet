@@ -120,6 +120,11 @@ class FaucetDB():
                       WHERE address=:addr",
                       addr=address)
 
+    def _unmark_received(self, address):
+        self.db.query("UPDATE addresses SET received=FALSE \
+                      WHERE address=:addr",
+                      addr=address)
+
     def _clear(self):
         self.db.query("DROP TABLE IF EXISTS transactions")
         self.db.query("DROP TABLE IF EXISTS addresses")
