@@ -1,3 +1,3 @@
 records==0.5.2
 pyota==2.0.3
-mysql-connector-python==8.0.5
+pymysql==0.8.0
