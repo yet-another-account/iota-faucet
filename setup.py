@@ -12,6 +12,9 @@ setup(
     author="eukaryote",
     description="An IOTA Faucet.",
 
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
+
     license="MIT",
     keywords="iota,faucet,cryptocurrency",
     url="",
