@@ -7,7 +7,7 @@ from iota_faucet import config
 
 class AddressGeneration(TestCase):
     def test_gen_addr(self):
-        db = FaucetDB("mysql://root:abc123@localhost:3306/test",
+        db = FaucetDB("mysql://root@localhost:3306/test",
                       Iota('http://node.lukaseder.de:14265',
                            seed='A' * 81), clean=True)
 

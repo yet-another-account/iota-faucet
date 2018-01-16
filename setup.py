@@ -12,14 +12,13 @@ setup(
     author="eukaryote",
     description="An IOTA Faucet.",
 
+    setup_requires=['pytest-runner'],
+    tests_require=['pytest'],
+
     license="MIT",
     keywords="iota,faucet,cryptocurrency",
     url="",
     packages=find_packages('.', exclude=('test', 'test.*')),
     long_description=read('README.md'),
-    install_requires=[
-        'records==0.5.2',
-        'pyota==2.0.3',
-        'mysqlclient==1.3.12'
-    ]
+    install_requires=read('requirements.txt').split('\n')
 )

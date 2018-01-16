@@ -1,0 +1,11 @@
+language: python
+python:
+  - "3.6"
+services:
+  - mysql
+before_install:
+  - echo "CREATE SCHEMA test" | mysql -u root
+install:
+  - pip install .
+script:
+  - python setup.py test
