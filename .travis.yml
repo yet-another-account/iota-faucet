@@ -4,7 +4,6 @@ python:
 services:
   - mysql
 before_install:
-  - sudo apt-get install python-mysqldb
   - echo "CREATE SCHEMA test" | mysql -u root
 install:
   - pip install .
